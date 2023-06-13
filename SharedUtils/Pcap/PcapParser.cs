@@ -1,0 +1,199 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace SharedUtils.Pcap {
+    public class PcapParser : IPcapParser {
+
+        enum TimestampResolition { microsecond, nanosecond }
+
+        public const uint LIBPCAP_MAGIC_NUMBER = 0xa1b2c3d4;
+        public const uint PCAP_MODIFIED_MAGIC = 0xa1b2cd34;
+        public const uint NANOSECOND_PCAP_MACIC = 0xa1b23c4d;
+
+        public static readonly HashSet<uint> PCAP_MAGIC_NUMBERS = new HashSet<uint> {
+            LIBPCAP_MAGIC_NUMBER,
+            BitConverter.ToUInt32(BitConverter.GetBytes(LIBPCAP_MAGIC_NUMBER).Reverse().ToArray(), 0),
+            PCAP_MODIFIED_MAGIC,
+            BitConverter.ToUInt32(BitConverter.GetBytes(PCAP_MODIFIED_MAGIC).Reverse().ToArray(), 0),
+            NANOSECOND_PCAP_MACIC,
+            BitConverter.ToUInt32(BitConverter.GetBytes(NANOSECOND_PCAP_MACIC).Reverse().ToArray(), 0)
+        };
+
+
+        //private System.IO.Stream pcapStream;
+        //private PcapStreamReader.AbortReadingDelegate abortReading;
+        private PcapFrame.DataLinkTypeEnum dataLinkType;
+        private int packetHeaderTrailerBytes = 0;//some capture formats (Like Fritzbox Modified PCAP have additional metadata after each packet header)
+        private IPcapStreamReader pcapStreamReader;
+        private TimestampResolition timestampRespolution = TimestampResolition.microsecond;
+
+        private bool littleEndian;
+
+        private List<KeyValuePair<string, string>> metadata;
+
+
+        /*public PcapFrame.DataLinkTypeEnum CurrentDataLinkType {
+            get { return this.dataLinkType; }
+        }*/
+
+        public List<KeyValuePair<string, string>> Metadata {
+            get { return this.metadata; }
+        }
+
+        public IList<PcapFrame.DataLinkTypeEnum> DataLinkTypes {
+            get { return new PcapFrame.DataLinkTypeEnum[] { this.dataLinkType}; }
+        }
+
+        public PcapParser(IPcapStreamReader pcapStreamReader)
+            : this(pcapStreamReader, null) {
+
+        }
+
+        public PcapParser(IPcapStreamReader pcapStreamReader, byte[] firstFourBytes) {
+            this.pcapStreamReader = pcapStreamReader;
+            this.metadata = new List<KeyValuePair<string, string>>();
+
+            //read pcap file header!
+            byte[] buffer4 = new byte[4];//32 bits is suitable
+            byte[] buffer2 = new byte[2];//16 bits is sometimes needed
+            //uint wiresharkMagicNumber = 0xa1b2c3d4;
+
+            //Section Header Block (mandatory)
+            if (firstFourBytes == null || firstFourBytes.Length != 4)
+                try {
+                    buffer4 = this.pcapStreamReader.BlockingRead(4);
+                }
+                catch(NullReferenceException) {
+                    throw new System.IO.InvalidDataException("The stream is too short, it does not contain a full PCAP header.");
+                }
+            else
+                buffer4 = firstFourBytes;
+
+            if (this.ToUInt32(buffer4, false) == LIBPCAP_MAGIC_NUMBER) {
+                this.littleEndian = false;
+                this.metadata.Add(new KeyValuePair<string,string>("Endianness", "Big Endian"));
+            }
+            else if (this.ToUInt32(buffer4, true) == LIBPCAP_MAGIC_NUMBER) {
+                this.littleEndian = true;
+                this.metadata.Add(new KeyValuePair<string,string>("Endianness", "Little Endian"));
+            }
+            else if (this.ToUInt32(buffer4, false) == PCAP_MODIFIED_MAGIC) {
+                this.littleEndian = false;
+                this.packetHeaderTrailerBytes = 8;
+                this.metadata.Add(new KeyValuePair<string, string>("Endianness", "Big Endian"));
+            }
+            else if (this.ToUInt32(buffer4, true) == PCAP_MODIFIED_MAGIC) {
+                this.littleEndian = true;
+                this.packetHeaderTrailerBytes = 8;
+                this.metadata.Add(new KeyValuePair<string, string>("Endianness", "Little Endian"));
+            }
+            else if (this.ToUInt32(buffer4, false) == NANOSECOND_PCAP_MACIC) {
+                this.littleEndian = false;
+                this.timestampRespolution = TimestampResolition.nanosecond;
+                this.metadata.Add(new KeyValuePair<string, string>("Endianness", "Big Endian"));
+            }
+            else if (this.ToUInt32(buffer4, true) == NANOSECOND_PCAP_MACIC) {
+                this.littleEndian = true;
+                this.timestampRespolution = TimestampResolition.nanosecond;
+                this.metadata.Add(new KeyValuePair<string, string>("Endianness", "Little Endian"));
+            }
+            else
+                throw new System.IO.InvalidDataException("The stream is not a PCAP file. Magic number is " + this.ToUInt32(buffer4, false).ToString("X2") + " or " + this.ToUInt32(buffer4, true).ToString("X2") + " but should be " + LIBPCAP_MAGIC_NUMBER.ToString("X2") + ".");
+
+            /* major version number */
+            this.pcapStreamReader.BlockingRead(buffer2, 0, 2);
+            ushort majorVersionNumber = ToUInt16(buffer2, this.littleEndian);
+            /* minor version number */
+            this.pcapStreamReader.BlockingRead(buffer2, 0, 2);
+            ushort minorVersionNumber = ToUInt16(buffer2, this.littleEndian);
+            /* GMT to local correction */
+            this.pcapStreamReader.BlockingRead(buffer4, 0, 4);
+            int timezoneOffsetSeconds = (int)ToUInt32(buffer4, this.littleEndian);
+            /* accuracy of timestamps */
+            this.pcapStreamReader.BlockingRead(buffer4, 0, 4);
+            /* max length of captured packets, in octets */
+            this.pcapStreamReader.BlockingRead(buffer4, 0, 4);
+            uint maximumPacketSize = ToUInt32(buffer4, this.littleEndian);
+            /* data link type */
+            this.pcapStreamReader.BlockingRead(buffer4, 0, 4); //offset = 20 = 0x14
+            this.dataLinkType = (PcapFrame.DataLinkTypeEnum)ToUInt32(buffer4, this.littleEndian);
+            this.metadata.Add(new KeyValuePair<string, string>("Data Link Type", dataLinkType.ToString()));
+        }
+
+        public PcapFrame ReadPcapPacketBlocking() {
+            long tics = 0;
+            /* timestamp seconds */
+            long seconds = (long)this.ToUInt32(this.pcapStreamReader.BlockingRead(4), this.littleEndian);/*seconds since January 1, 1970 00:00:00 GMT*/
+            tics += seconds * 10000000;
+            /* timestamp microseconds */
+            uint subseconds = this.ToUInt32(this.pcapStreamReader.BlockingRead(4), this.littleEndian);
+            if(this.timestampRespolution == TimestampResolition.microsecond)
+                tics += subseconds * 10;
+            else if(this.timestampRespolution == TimestampResolition.nanosecond)
+                tics += subseconds / 100;
+            /* number of octets of packet saved in file */
+            int bytesToRead = (int)this.ToUInt32(this.pcapStreamReader.BlockingRead(4), this.littleEndian);
+            if (bytesToRead > PcapStreamReader.MAX_FRAME_SIZE)
+                throw new Exception("Frame size is too large! Frame size = " + bytesToRead);
+            else if (bytesToRead < 0)
+                throw new Exception("Cannot read frames of negative sizes! Frame size = " + bytesToRead);
+            /* actual length of packet */
+            this.pcapStreamReader.BlockingRead(4 + this.packetHeaderTrailerBytes);//don't need this value
+
+            byte[] data = this.pcapStreamReader.BlockingRead(bytesToRead);
+
+            DateTime timestamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            //long tics = (seconds * 1000000 + microseconds) * 10;
+            TimeSpan timespan = new TimeSpan(tics);
+
+            return new PcapFrame(timestamp.Add(timespan), data, this.dataLinkType);
+        }
+
+        public async System.Threading.Tasks.Task<PcapFrame> ReadPcapPacketAsync(System.Threading.CancellationToken cancellationToken) {
+            /* timestamp seconds */
+            long seconds = this.ToUInt32(await this.pcapStreamReader.ReadAsync(4, cancellationToken), this.littleEndian);/*seconds since January 1, 1970 00:00:00 GMT*/
+            /* timestamp microseconds */
+            uint microseconds = this.ToUInt32(await this.pcapStreamReader.ReadAsync(4, cancellationToken), this.littleEndian);
+            /* number of octets of packet saved in file */
+            int bytesToRead = (int)this.ToUInt32(await this.pcapStreamReader.ReadAsync(4, cancellationToken), this.littleEndian);
+            if (bytesToRead > PcapStreamReader.MAX_FRAME_SIZE)
+                throw new Exception("Frame size is too large! Frame size = " + bytesToRead);
+            else if (bytesToRead < 0)
+                throw new Exception("Cannot read frames of negative sizes! Frame size = " + bytesToRead);
+            /* actual length of packet */
+            await this.pcapStreamReader.ReadAsync(4 + this.packetHeaderTrailerBytes, cancellationToken);//don't need this value
+
+            byte[] data = await this.pcapStreamReader.ReadAsync(bytesToRead, cancellationToken);
+
+            DateTime timestamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            long tics = (seconds * 1000000 + microseconds) * 10;
+            TimeSpan timespan = new TimeSpan(tics);
+
+            return new PcapFrame(timestamp.Add(timespan), data, this.dataLinkType);
+        }
+
+        
+        private ushort ToUInt16(byte[] buffer, bool littleEndian) {
+            if (littleEndian)
+                return (ushort)(buffer[0] ^ buffer[1] << 8);
+            else
+                return (ushort)(buffer[0] << 8 ^ buffer[1]);
+        }
+
+        private uint ToUInt32(byte[] buffer, bool littleEndian) {
+            if (littleEndian) {//swapped
+                return (uint)(buffer[0] ^ buffer[1] << 8 ^ buffer[2] << 16 ^ buffer[3] << 24);
+            }
+            else//normal
+                return (uint)(buffer[0] << 24 ^ buffer[1] << 16 ^ buffer[2] << 8 ^ buffer[3]);
+        }
+
+
+
+
+
+        
+    }
+}
