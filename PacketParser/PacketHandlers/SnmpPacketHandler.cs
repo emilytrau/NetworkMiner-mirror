@@ -6,7 +6,7 @@ namespace PacketParser.PacketHandlers {
     class SnmpPacketHandler : AbstractPacketHandler, IPacketHandler {
 
 
-        public override Type ParsedType { get { return typeof(Packets.SnmpPacket); } }
+        public override Type[] ParsedTypes { get; } = { typeof(Packets.SnmpPacket) };
 
         public SnmpPacketHandler(PacketHandler mainPacketHandler)
             : base(mainPacketHandler) {

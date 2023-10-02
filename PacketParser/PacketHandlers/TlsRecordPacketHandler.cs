@@ -26,10 +26,10 @@ namespace PacketParser.PacketHandlers {
         private Dictionary<string, string> abuseChX509CertificateFingerprints;
         private bool verifyX509Certificates = false;
 
-        public override Type ParsedType { get { return typeof(Packets.TlsRecordPacket); } }
+        public override Type[] ParsedTypes { get; } = { typeof(Packets.TlsRecordPacket) };
 
         public ApplicationLayerProtocol HandledProtocol {
-            get { return ApplicationLayerProtocol.Ssl; }
+            get { return ApplicationLayerProtocol.SSL; }
         }
 
         

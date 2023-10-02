@@ -9,7 +9,7 @@ namespace PacketParser.PacketHandlers {
 
         private PopularityList<NetworkTcpSession, KeyValuePair<System.Net.IPAddress, ushort>> socksConnectIpPorts;
 
-        public override Type ParsedType { get { return typeof(Packets.SocksPacket); } }
+        public override Type[] ParsedTypes { get; } = { typeof(Packets.SocksPacket) };
 
         public SocksPacketHandler(PacketHandler mainPacketHandler) : base(mainPacketHandler) {
             this.socksConnectIpPorts = new PopularityList<NetworkTcpSession, KeyValuePair<System.Net.IPAddress, ushort>>(64);//64 parallell SOCKS sessions should be enough for everyone ;)
@@ -19,7 +19,7 @@ namespace PacketParser.PacketHandlers {
         {
             get
             {
-                return ApplicationLayerProtocol.Socks;
+                return ApplicationLayerProtocol.SOCKS;
             }
         }
 

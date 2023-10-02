@@ -14,23 +14,16 @@ namespace NetworkMiner {
 
         private static readonly TimeZoneInfo DEFAULT_TIME_ZONE = TimeZoneInfo.Utc;//Was "Local" before version 2.3
 
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private int maxDisplayedFrames = 1000;
 
-        //private System.Security.Cryptography.ICryptoTransform cryptoTransform = null;
         private System.Security.Cryptography.SymmetricAlgorithm cryptoAlg = null;
 
         public void SetCryptoAlgoritm(System.Security.Cryptography.SymmetricAlgorithm cryptoAlg) {
             this.cryptoAlg = cryptoAlg;
         }
-
-        /*
-        public void SetCryptoTransform(System.Security.Cryptography.ICryptoTransform cryptoTransform) {
-            this.cryptoTransform = cryptoTransform;
-        }
-        */
-
 
         public GuiProperties() {
             this.AdvertisementColor = System.Drawing.Color.Red;
@@ -99,6 +92,11 @@ namespace NetworkMiner {
 
         [DescriptionAttribute("If newline characters in strings should be preserved when exporting to a CSV file.")]
         public bool PreserveLinesInCsvExport { get; set; } = true;
+
+        public const byte MAX_FRAMES_PER_SECOND_VNC_DEFAULT = 1;
+
+        [DescriptionAttribute("Recommended fps values for VNC screenshot extraction are 1 to 10.")]
+        public byte MaxFramesPerSecondVNC { get; set; } = MAX_FRAMES_PER_SECOND_VNC_DEFAULT;
 
         [XmlIgnore]
         [DescriptionAttribute("Time zone to use for displaying all timestamp values.")]
@@ -271,10 +269,6 @@ namespace NetworkMiner {
 
             DateTime timeInCustomZone = TimeZoneInfo.ConvertTimeFromUtc(timestamp.ToUniversalTime(), timeZoneInfo);
             
-            /*
-            return timeInCustomZone.ToString("u");//A user friendly time representation without 'T' or milliseconds, for example "2022-12-02 12:00:01Z"
-            */
-
             TimeSpan timeZoneOffset = timeZoneInfo.GetUtcOffset(timeInCustomZone);
             StringBuilder s = new StringBuilder(timeInCustomZone.ToString("yyyy-MM-dd HH:mm:ss"));
             if (timeZoneOffset == TimeSpan.FromSeconds(0))

@@ -10,6 +10,7 @@ namespace PacketParser.Packets {
         private byte headerVersion, headerType;
         private byte wirelessBindingID;
         private int headerLength;
+        private bool payloadIsWBID;
 
         enum CapwapType : byte {
             Capwap = 0,
@@ -50,17 +51,29 @@ namespace PacketParser.Packets {
                 */
                 this.headerLength = 4 * (parentFrame.Data[PacketStartIndex + 1] >> 3);
                 this.wirelessBindingID = (byte)((parentFrame.Data[PacketStartIndex + 2] >> 1) & 0x1f);
+                this.payloadIsWBID = (parentFrame.Data[PacketStartIndex + 2] & 0x01) == 0x01;
             }
         }
 
         public override IEnumerable<AbstractPacket> GetSubPackets(bool includeSelfReference) {
             if (includeSelfReference)
                 yield return this;
-            if (this.headerType == (byte)(CapwapType.Capwap) && this.wirelessBindingID == (byte)(WirelessBindingID.IEEE_802_11)) {
-                IEEE_802_11Packet iee80211 = new IEEE_802_11Packet(this.ParentFrame, this.PacketStartIndex + this.headerLength, this.PacketEndIndex, true);
-                yield return iee80211;
-                foreach (AbstractPacket subPacket in iee80211.GetSubPackets(false))
-                    yield return subPacket;
+            if (this.headerType == (byte)(CapwapType.Capwap)) {
+                //check flags for Payload Type
+                /**
+                 * T: The Type 'T' bit indicates the format of the frame being
+                 * transported in the payload.  When this bit is set to one (1), the
+                 * payload has the native frame format indicated by the WBID field.
+                 * When this bit is zero (0), the payload is an IEEE 802.3 frame.
+                 **/
+                if (this.payloadIsWBID) {
+                    if (this.wirelessBindingID == (byte)(WirelessBindingID.IEEE_802_11)) {
+                        IEEE_802_11Packet iee80211 = new IEEE_802_11Packet(this.ParentFrame, this.PacketStartIndex + this.headerLength, this.PacketEndIndex, true);
+                        yield return iee80211;
+                        foreach (AbstractPacket subPacket in iee80211.GetSubPackets(false))
+                            yield return subPacket;
+                    }
+                }
             }
         }
     }

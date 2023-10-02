@@ -61,7 +61,7 @@ namespace PacketParser.Packets {
                 }
 
 
-                    if (l7Protocol == ApplicationLayerProtocol.Dns) {//DNS or Multicast DNS http://www.multicastdns.org/
+                    if (l7Protocol == ApplicationLayerProtocol.DNS) {//DNS or Multicast DNS http://www.multicastdns.org/
                     try {
                         packet = new DnsPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
@@ -72,7 +72,7 @@ namespace PacketParser.Packets {
                         packet = new RawPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
                 }
-                else if (l7Protocol == ApplicationLayerProtocol.Dhcp) {
+                else if (l7Protocol == ApplicationLayerProtocol.DHCP) {
                     try {
                         packet = new DhcpPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
@@ -83,7 +83,7 @@ namespace PacketParser.Packets {
                     }
 
                 }
-                else if (l7Protocol == ApplicationLayerProtocol.Tftp) {
+                else if (l7Protocol == ApplicationLayerProtocol.TFTP) {
                     try {
                         packet = new TftpPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
@@ -125,7 +125,7 @@ namespace PacketParser.Packets {
                         packet = new RawPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
                 }
-                else if (l7Protocol == ApplicationLayerProtocol.Snmp) {
+                else if (l7Protocol == ApplicationLayerProtocol.SNMP) {
                     try {
                         packet = new SnmpPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
@@ -145,7 +145,7 @@ namespace PacketParser.Packets {
                         packet = new RawPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
                 }
-                else if (l7Protocol == ApplicationLayerProtocol.Upnp) {
+                else if (l7Protocol == ApplicationLayerProtocol.UPnP) {
                     try {
                         packet = new UpnpPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
@@ -155,7 +155,7 @@ namespace PacketParser.Packets {
                         packet = new RawPacket(ParentFrame, PacketStartIndex + 8, PacketEndIndex);
                     }
                 }
-                else if (l7Protocol == ApplicationLayerProtocol.Sip) {
+                else if (l7Protocol == ApplicationLayerProtocol.SIP) {
                     try {
                         if (SipPacket.TryParse(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex, out SipPacket sipPacket))
                             packet = sipPacket;
@@ -167,7 +167,7 @@ namespace PacketParser.Packets {
                         packet = new RawPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
                 }
-                else if(l7Protocol == ApplicationLayerProtocol.Rtp) {
+                else if(l7Protocol == ApplicationLayerProtocol.RTP) {
                     try {
                         packet = new RtpPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
@@ -187,7 +187,7 @@ namespace PacketParser.Packets {
                         packet = new RawPacket(this.ParentFrame, this.PacketStartIndex + 8, this.PacketEndIndex);
                     }
                 }
-                else if (l7Protocol == ApplicationLayerProtocol.Capwap) {
+                else if (l7Protocol == ApplicationLayerProtocol.CAPWAP) {
                     try {
                         packet = new Capwap(ParentFrame, PacketStartIndex + 8, PacketEndIndex);
                     }

@@ -56,7 +56,7 @@ namespace NetworkMiner {
             creditBuilder.AppendLine();
             creditBuilder.AppendLine("NetworkMiner uses the MAC address database mac-ages, created and maintained by HD Moore. Mac-ages is available at https://github.com/hdm/mac-ages");
             creditBuilder.AppendLine();
-            creditBuilder.AppendLine("NetworkMiner uses the OS fingerprinting databse from p0f, created by Michal Zalewski <lcamtuf@coredump.cx>. P0f is available at http://lcamtuf.coredump.cx/p0f3/");
+            creditBuilder.AppendLine("NetworkMiner uses the OS fingerprinting databse from p0f, created by Michal Zalewski <lcamtuf@coredump.cx>. P0f is available at https://lcamtuf.coredump.cx/p0f3/");
             creditBuilder.AppendLine();
             creditBuilder.AppendLine("NetworkMiner uses the JA3 and and SSL Blacklists from abuse.ch’s SSLBL service. SSLBL is available at https://sslbl.abuse.ch/blacklist/");
             if (localAboutTextNVC[nameof(AboutTabs.Credits)] == null)

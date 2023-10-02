@@ -103,7 +103,7 @@ namespace PacketParser.Fingerprints {
                 return macNumberMasked;
             }
             else
-                throw new FormatException("Invalid macAddress format, should be '00e02b000001'");
+                throw new FormatException("Invalid macAddress format, should be '00e02b000001'");//https://github.com/hdm/mac-ages/issues/7 TODO: Clean CSV file manually
         }
         
     }

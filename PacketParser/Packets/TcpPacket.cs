@@ -269,16 +269,41 @@ namespace PacketParser.Packets {
 
         private AbstractPacket GetProtocolPacket(ApplicationLayerProtocol protocol, bool clientToServer) {
             //AbstractPacket packet = null;
-            if (protocol == ApplicationLayerProtocol.Dns) {
+            if (protocol == ApplicationLayerProtocol.BackConnect) {
+                if (BackConnectPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out AbstractPacket packet)) {
+                    return packet;
+                }
+            }
+            else if(protocol == ApplicationLayerProtocol.BackConnectFileManager) {
+                if (BackConnectPacket.FileManagerPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out BackConnectPacket.FileManagerPacket packet)) {
+                    return packet;
+                }
+            }
+            else if (protocol == ApplicationLayerProtocol.BackConnectReverseShell) {
+                if (BackConnectPacket.ReverseShellPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out BackConnectPacket.ReverseShellPacket packet)) {
+                    return packet;
+                }
+            }
+            else if (protocol == ApplicationLayerProtocol.BackConnectReverseSocks) {
+                if (BackConnectPacket.ReverseSocksPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out BackConnectPacket.ReverseSocksPacket packet)) {
+                    return packet;
+                }
+            }
+            else if (protocol == ApplicationLayerProtocol.BackConnectReverseVNC) {
+                if (BackConnectPacket.ReverseVncPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out BackConnectPacket.ReverseVncPacket packet)) {
+                    return packet;
+                }
+            }
+            else if (protocol == ApplicationLayerProtocol.DNS) {
                 if (DnsPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, true, out DnsPacket dnsPacket))
                     return dnsPacket;
             }
-            else if (protocol == ApplicationLayerProtocol.FtpControl) {
+            else if (protocol == ApplicationLayerProtocol.FTP) {
                 if (FtpPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, this.sourcePort, out FtpPacket ftpPacket)) {
                     return ftpPacket;
                 }
             }
-            else if (protocol == ApplicationLayerProtocol.Http) {
+            else if (protocol == ApplicationLayerProtocol.HTTP) {
                 if (HttpPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, out AbstractPacket packet)) {
                     return packet;
                 }//allow protocol to switch to HTTP/2
@@ -287,7 +312,7 @@ namespace PacketParser.Packets {
                     return packet;
                 }*/
             }
-            else if (protocol == ApplicationLayerProtocol.Http2) {
+            else if (protocol == ApplicationLayerProtocol.HTTP2) {
                 if (Http2Packet.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, out AbstractPacket packet)) {
                     return packet;
                 }//allow protocol to switch to HTTP 1.x
@@ -296,7 +321,7 @@ namespace PacketParser.Packets {
                     return packet;
                 }*/
             }
-            else if (protocol == ApplicationLayerProtocol.Irc) {
+            else if (protocol == ApplicationLayerProtocol.IRC) {
                 if (IrcPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, out AbstractPacket packet)) {
                     return packet;
                 }
@@ -306,13 +331,13 @@ namespace PacketParser.Packets {
                     return packet;
                 }
             }
-            else if (protocol == ApplicationLayerProtocol.Imap) {
+            else if (protocol == ApplicationLayerProtocol.IMAP) {
                 return new ImapPacket(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer);
             }
             else if (protocol == ApplicationLayerProtocol.Kerberos) {
                 return new KerberosPacket(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, true);
             }
-            else if(protocol == ApplicationLayerProtocol.Lpd) {
+            else if(protocol == ApplicationLayerProtocol.LPD) {
                 if (LpdPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out AbstractPacket packet))
                     return packet;
             }
@@ -337,6 +362,10 @@ namespace PacketParser.Packets {
                     return packet;
                 }
             }
+            else if(protocol == ApplicationLayerProtocol.njRAT) {
+                if (NjRatPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out NjRatPacket njRatPacket))
+                    return njRatPacket;
+            }
             else if (protocol == ApplicationLayerProtocol.OpenFlow) {
                 if (OpenFlowPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, out AbstractPacket packet)) {
                     return packet;
@@ -352,19 +381,28 @@ namespace PacketParser.Packets {
                     return packet;
                 }
             }
-            else if (protocol == ApplicationLayerProtocol.Pop3) {
+            else if (protocol == ApplicationLayerProtocol.POP3) {
                 return new Pop3Packet(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer);
             }
-            else if(protocol == ApplicationLayerProtocol.Sip) {
+            else if (protocol == ApplicationLayerProtocol.VNC) {
+                RfbPacket rfbPacket;
+                if (RfbPacket.TryParseHandshake(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out rfbPacket)) {
+                    return rfbPacket;
+                }
+                else if (RfbPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out rfbPacket)) {
+                    return rfbPacket;
+                }
+            }
+            else if(protocol == ApplicationLayerProtocol.SIP) {
                 if (SipPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, out SipPacket sipPacket))
                     return sipPacket;
             }
-            else if (protocol == ApplicationLayerProtocol.Smtp) {
+            else if (protocol == ApplicationLayerProtocol.SMTP) {
                 if (SmtpPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, this.sourcePort, out SmtpPacket smtpPacket))
                     return smtpPacket;
                 //return new SmtpPacket(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer);
             }
-            else if (protocol == ApplicationLayerProtocol.Socks) {
+            else if (protocol == ApplicationLayerProtocol.SOCKS) {
                 if (SocksPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, clientToServer, out AbstractPacket packet)) {
                     return packet;
                 }
@@ -374,12 +412,12 @@ namespace PacketParser.Packets {
                     return packet;
                 }
             }
-            else if (protocol == ApplicationLayerProtocol.Ssh) {
+            else if (protocol == ApplicationLayerProtocol.SSH) {
                 if (SshPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, out AbstractPacket packet)) {
                     return packet;
                 }
             }
-            else if (protocol == ApplicationLayerProtocol.Ssl) {
+            else if (protocol == ApplicationLayerProtocol.SSL) {
                 if (SslPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, out AbstractPacket packet)) {
                     return packet;
                 }
@@ -387,8 +425,8 @@ namespace PacketParser.Packets {
             else if (protocol == ApplicationLayerProtocol.TabularDataStream) {
                 return new TabularDataStreamPacket(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex);
             }
-            else if (protocol == ApplicationLayerProtocol.Tpkt) {
-                if (TpktPacket.TryParse(ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, this, out AbstractPacket packet)) {
+            else if (protocol == ApplicationLayerProtocol.TPKT) {
+                if (TpktPacket.TryParse(this.ParentFrame, this.PacketStartIndex + this.dataOffsetByteCount, this.PacketEndIndex, this, out AbstractPacket packet)) {
                     return packet;
                 }
             }

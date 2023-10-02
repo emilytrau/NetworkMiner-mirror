@@ -69,11 +69,11 @@ namespace PacketParser.Mime {
             Mime.UnbufferedReader ur = new PacketParser.Mime.UnbufferedReader(emailMimeStream);
             this.MainPacketHandler = mainPacketHandler;
             this.protocol = protocol;
-            if (this.protocol == ApplicationLayerProtocol.Smtp)
+            if (this.protocol == ApplicationLayerProtocol.SMTP)
                 this.fileTransferProtocol = FileTransfer.FileStreamTypes.SMTP;
-            else if (this.protocol == ApplicationLayerProtocol.Pop3)
+            else if (this.protocol == ApplicationLayerProtocol.POP3)
                 this.fileTransferProtocol = FileTransfer.FileStreamTypes.POP3;
-            else if (this.protocol == ApplicationLayerProtocol.Imap)
+            else if (this.protocol == ApplicationLayerProtocol.IMAP)
                 this.fileTransferProtocol = FileTransfer.FileStreamTypes.IMAP;
             //this.reassembleFileAtSourceHost = reassembleFileAtSourceHost;
             this.fileAssmeblyRootLocation = fileAssmeblyRootLocation;

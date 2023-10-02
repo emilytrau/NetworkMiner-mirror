@@ -84,7 +84,7 @@ namespace PacketParser.Packets {
                     //parse the tag data
 
                     if(Enum.IsDefined(typeof(SignonTags), tag)) {
-                        string hexString = Utils.ByteConverter.ReadHexString(parentFrame.Data, (int)length, index);
+                        string hexString = Utils.ByteConverter.ToHexString(parentFrame.Data, (int)length, index);
                         string strString = Utils.ByteConverter.ReadString(parentFrame.Data, index, (int)length);
                         if (!this.ParentFrame.QuickParse)
                             base.Attributes.Add(((SignonTags)tag).ToString(), hexString+" ("+strString+")");

@@ -4,6 +4,7 @@ namespace PacketParser.FileTransfer {
         //FtpActiveStor,
         //FtpPassiveRetr,
         //FtpPassiveStor,
+        BackConnect,
         FTP,
         HttpGetChunked,
         HttpGetNormal,
@@ -16,6 +17,7 @@ namespace PacketParser.FileTransfer {
         IMAP,
         LPD,
         Meterpreter,
+        njRAT,
         OscarFileTransfer,
         POP3,
         RTP,
@@ -23,6 +25,7 @@ namespace PacketParser.FileTransfer {
         SMB2,
         SMTP,
         TFTP,
-        TlsCertificate
+        TlsCertificate,
+        VNC,//RFB = Remote Frame Buffer
     }
 }

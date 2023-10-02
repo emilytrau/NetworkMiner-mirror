@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace PacketParser.Packets {
@@ -60,7 +61,11 @@ namespace PacketParser.Packets {
 
             int index = packetStartIndex;
             string messageLine = Utils.ByteConverter.ReadLine(parentFrame.Data, ref index, true);
-            if (!string.IsNullOrEmpty(messageLine)) {
+            if (string.IsNullOrEmpty(messageLine)) {
+                if (TryParseKeepAlive(parentFrame, packetStartIndex, packetEndIndex, out sipPacket))
+                    return true;
+            }
+            else {
                 string requestMethodString = Utils.StringManglerUtil.GetFirstPart(messageLine, ' ');
                 if (Enum.IsDefined(typeof(RequestMethods), requestMethodString)) {
                     sipPacket = new SipPacket(parentFrame, packetStartIndex, packetEndIndex);
@@ -73,6 +78,23 @@ namespace PacketParser.Packets {
                 return true;
             }
             return sipPacket != null;
+        }
+
+        private static bool TryParseKeepAlive(Frame parentFrame, int packetStartIndex, int packetEndIndex, out SipPacket sipPacket) {
+            //RFC 5626 defines CRLF as keepalive messages
+            sipPacket = null;
+            int sipDataLength = packetEndIndex - packetStartIndex + 1;
+            if (sipDataLength > 0 && sipDataLength % 2 == 0) {
+                for (int i = packetStartIndex; i < packetEndIndex; i += 2) {
+                    if (parentFrame.Data[i] != 0x0d)
+                        return false;
+                    else if (parentFrame.Data[i + 1] != 0x0a)
+                        return false;
+                }
+                sipPacket = new SipPacket(parentFrame, packetStartIndex, packetEndIndex);
+                return true;//we have a sequence of CRLF
+            }
+            return false;
         }
 
         private SipPacket(Frame parentFrame, int packetStartIndex, int packetEndIndex)

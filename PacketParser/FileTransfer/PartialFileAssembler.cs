@@ -4,6 +4,11 @@ using System.Linq;
 using System.Text;
 
 namespace PacketParser.FileTransfer {
+
+    /// <summary>
+    /// PartialFileAssembler is used by FileStreamAssembler when it has assembled a file that
+    /// turns out to only be a fragment of a larger file, for example a range HTTP request.
+    /// </summary>
     class PartialFileAssembler : IDisposable {
         private readonly FileStreamAssembler.FileAssmeblyRootLocation fileAssmeblyRootLocation;
         private readonly FiveTuple fiveTuple;

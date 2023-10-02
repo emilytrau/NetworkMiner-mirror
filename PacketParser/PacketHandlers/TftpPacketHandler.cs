@@ -14,7 +14,7 @@ namespace PacketParser.PacketHandlers {
 
         private PopularityList<string, ushort> tftpSessionBlksizeList;
 
-        public override Type ParsedType { get { return typeof(Packets.TftpPacket); } }
+        public override Type[] ParsedTypes { get; } = { typeof(Packets.TftpPacket) };
         public override bool CanParse(HashSet<Type> packetTypeSet) {
             return base.CanParse(packetTypeSet) || packetTypeSet.Contains(typeof(Packets.UdpPacket));
         }

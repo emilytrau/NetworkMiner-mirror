@@ -326,7 +326,7 @@ namespace PacketParser.PacketHandlers
 
         public ApplicationLayerProtocol HandledProtocol {
             get {
-                return ApplicationLayerProtocol.Http2;
+                return ApplicationLayerProtocol.HTTP2;
             }
         }
 
@@ -334,7 +334,7 @@ namespace PacketParser.PacketHandlers
         private readonly PopularityList<string, PacketParser.FileTransfer.FileSegmentAssembler> fileSegmentAssemblerList;
         private readonly DnsPacketHandler dnsPacketHandler;//for DoH (RFC 8484)
 
-        public override Type ParsedType { get { return typeof(Packets.Http2Packet); } }
+        public override Type[] ParsedTypes { get; } = { typeof(Packets.Http2Packet) };
 
         public Http2PacketHandler(PacketHandler mainPacketHandler, DnsPacketHandler dnsPacketHandler)
             : base(mainPacketHandler) {

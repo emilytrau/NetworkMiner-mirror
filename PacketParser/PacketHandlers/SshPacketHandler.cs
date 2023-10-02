@@ -5,10 +5,10 @@ using System.Text;
 namespace PacketParser.PacketHandlers {
     class SshPacketHandler : AbstractPacketHandler, ITcpSessionPacketHandler {
 
-        public override Type ParsedType { get { return typeof(Packets.SshPacket); } }
+        public override Type[] ParsedTypes { get; } = { typeof(Packets.SshPacket) };
 
         public ApplicationLayerProtocol HandledProtocol {
-            get { return ApplicationLayerProtocol.Ssh; }
+            get { return ApplicationLayerProtocol.SSH; }
         }
 
         public SshPacketHandler(PacketHandler mainPacketHandler)

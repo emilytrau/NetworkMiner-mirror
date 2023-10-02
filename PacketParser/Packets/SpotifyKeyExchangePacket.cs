@@ -46,7 +46,7 @@ namespace PacketParser.Packets {
             }
         }
         public string ClientUsername { get { return this.username; } }
-        public string PublicKeyHexString { get { return Utils.ByteConverter.ReadHexString(publicKey, publicKey.Length); } }
+        public string PublicKeyHexString { get { return Utils.ByteConverter.ToHexString(publicKey, publicKey.Length); } }
 
 
         //use this one instead of the constructor to speed things up by reducing Exceptions

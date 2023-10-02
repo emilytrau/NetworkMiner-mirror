@@ -39,13 +39,13 @@ namespace PacketParser {
                 //DNS
                 //Multicast DNS (UDP 5353) http://www.multicastdns.org/
                 //LLMNR DNS (UDP 5355)
-                return ApplicationLayerProtocol.Dns;
+                return ApplicationLayerProtocol.DNS;
             }
             else if (destinationPort == 67 || destinationPort == 68 || sourcePort == 67 || sourcePort == 68) {
-                return ApplicationLayerProtocol.Dhcp;
+                return ApplicationLayerProtocol.DHCP;
             }
             else if (destinationPort == 69 || sourcePort == 69) {
-                return ApplicationLayerProtocol.Tftp;
+                return ApplicationLayerProtocol.TFTP;
             }
             else if(destinationPort == 88 || sourcePort == 88) {
                 return ApplicationLayerProtocol.Kerberos;
@@ -57,21 +57,21 @@ namespace PacketParser {
                 return ApplicationLayerProtocol.NetBiosDatagramService;
             }
             else if (destinationPort == 161 || sourcePort == 161) {
-                return ApplicationLayerProtocol.Snmp;
+                return ApplicationLayerProtocol.SNMP;
             }
             else if (destinationPort == 514 || sourcePort == 514) {
                 return ApplicationLayerProtocol.Syslog;
             }
             else if (destinationPort == 1900 || sourcePort == 1900) {
-                return ApplicationLayerProtocol.Upnp;
+                return ApplicationLayerProtocol.UPnP;
             }
             else if (destinationPort == 4789 || sourcePort == 4789 || destinationPort == 8472 || sourcePort == 8472) {
                 return ApplicationLayerProtocol.VXLAN;
             }
             else if(destinationPort == 5246 || sourcePort == 5246 || destinationPort == 5247 || sourcePort == 5247)
-                return ApplicationLayerProtocol.Capwap;
+                return ApplicationLayerProtocol.CAPWAP;
             else if (IsSipPort(destinationPort) || IsSipPort(sourcePort)) {
-                return ApplicationLayerProtocol.Sip;
+                return ApplicationLayerProtocol.SIP;
             }
             else {
                 return ApplicationLayerProtocol.Unknown;

@@ -19,7 +19,7 @@ namespace PacketParser {
     public class NetworkHost : IComparable, System.Xml.Serialization.IXmlSerializable {
         
         public enum OperatingSystemID { Windows, Linux, UNIX, FreeBSD, NetBSD, Solaris, MacOS, Apple_iOS, Cisco, Android, BlackBerry, PlayStation, Nintendo, ICS_device, ABB, Siemens, Other, Unknown }
-        public enum ExtraDetailType { PublicIP, SnmpParameter }
+        public enum ExtraDetailType { PublicIP, SnmpParameter, User }
 
         public static Func<string, string, IEnumerable<(string name, string value)>> HostnameExtraDetailsFunc = null;
         private static readonly System.Text.RegularExpressions.Regex NETBIOS_TRAILER_TAG = new System.Text.RegularExpressions.Regex("<[0-9]{2}>$");//matches trailing <nn> from NetBIOS hostname like PC-NAME<20>
@@ -776,15 +776,17 @@ namespace PacketParser {
         /// </summary>
         /// <param name="hostname">DNS address, NetBIOS name or simiar</param>
         internal void AddHostName(string hostname, string packetTypeDescription) {
-            if (NETBIOS_TRAILER_TAG.IsMatch(hostname))
-                hostname = hostname.Substring(0, hostname.Length - 4);
-            lock (this.hostNameList)
-                if (!this.hostNameList.Contains(hostname)) {
-                    this.hostNameList.Add(hostname);
-                    if(HostnameExtraDetailsFunc != null)
-                        foreach ((string name, string value) in HostnameExtraDetailsFunc.Invoke(hostname, packetTypeDescription))
-                            this.AddNumberedExtraDetail(name, value);
-                }
+            if (!string.IsNullOrEmpty(hostname)) {
+                if (NETBIOS_TRAILER_TAG.IsMatch(hostname))
+                    hostname = hostname.Substring(0, hostname.Length - 4);
+                lock (this.hostNameList)
+                    if (!this.hostNameList.Contains(hostname)) {
+                        this.hostNameList.Add(hostname);
+                        if (HostnameExtraDetailsFunc != null)
+                            foreach ((string name, string value) in HostnameExtraDetailsFunc.Invoke(hostname, packetTypeDescription))
+                                this.AddNumberedExtraDetail(name, value);
+                    }
+            }
         }
         internal void AddDomainName(string domainName) {
             lock (this.domainNameList) {
@@ -839,6 +841,9 @@ namespace PacketParser {
             }
             else if (detailType == ExtraDetailType.SnmpParameter) {
                 this.AddNumberedExtraDetail("SNMP parameter", value);
+            }
+            else if (detailType == ExtraDetailType.User) {
+                this.AddNumberedExtraDetail("User", value);
             }
             else
                 throw new Exception("Type not supported: " + detailType);

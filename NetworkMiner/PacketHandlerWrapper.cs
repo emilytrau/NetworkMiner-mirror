@@ -38,9 +38,9 @@ namespace NetworkMiner {
             this.pcapWriter=null;
             string exePath = System.IO.Path.GetFullPath(System.Windows.Forms.Application.ExecutablePath);
             if(this.parentForm == null || this.parentForm.GuiProperties == null)
-                this.packetHandler = new PacketParser.PacketHandler(exePath, outputDirectory.FullName, preloadedFingerprints, false, NetworkMiner.GuiProperties.ToDefaultTimeZoneString, useRelativePathIfAvailable, this.parentForm.VerifyX509Certificates);
+                this.packetHandler = new PacketParser.PacketHandler(exePath, outputDirectory.FullName, preloadedFingerprints, false, NetworkMiner.GuiProperties.ToDefaultTimeZoneString, useRelativePathIfAvailable, this.parentForm.VerifyX509Certificates, NetworkMiner.GuiProperties.MAX_FRAMES_PER_SECOND_VNC_DEFAULT);
             else
-                this.packetHandler = new PacketParser.PacketHandler(exePath, outputDirectory.FullName, preloadedFingerprints, false, this.parentForm.GuiProperties.ToCustomTimeZoneString, useRelativePathIfAvailable, this.parentForm.VerifyX509Certificates);
+                this.packetHandler = new PacketParser.PacketHandler(exePath, outputDirectory.FullName, preloadedFingerprints, false, this.parentForm.GuiProperties.ToCustomTimeZoneString, useRelativePathIfAvailable, this.parentForm.VerifyX509Certificates, parentForm.GuiProperties.MaxFramesPerSecondVNC);
 
             this.PacketHandler.AnomalyDetected += new PacketParser.AnomalyEventHandler(this.AnomalyDetected);
             this.PacketHandler.BufferUsageChanged+=new PacketParser.BufferUsageEventHandler(this.BufferUsageChanged);

@@ -1,7 +1,20 @@
+NetworkMiner 2.8.1
+	* CapWapPacket.cs: Fixed bug in CapWap parser for packets with T flag set to 0.
+	* HttpPacketHandler.cs: Added public IP address extraction from JSON bodies.
+	* RfbPacket.cs: Added support for screenshot extraction from VNC traffic
+	* NjRatPacket.cs: Added extraction of njRAT artifacts, like screenshots and modules
+	* BackConnectPacket.cs: Added parser for BackConnect protocol used by IcedID etc.
+	  This enables decapsulation of SOCKS traffic inside BackConnect.
+	* NetworkMinerForm.cs: Improved Images tab to support filtering and improved performance.
+	  Also added support for copying image data to clipboard with Ctrl+C
+	* HttpPacketHandler.cs: Added extraction of files sent with HTTP PUT
+	* BackConnectPacket.cs: Added decryption of encrypted BackConnect traffic
+	* SipPacket.cs: Added support for CRLF Keep-Alive messages. This could otherwise break SIP parsing in version 2.8.
+
 NetworkMiner 2.8
-    * NetworkHostTreeNode.cs: Nodes on the Hosts tab can now be filtered using string
+	* NetworkHostTreeNode.cs: Nodes on the Hosts tab can now be filtered using string
 	  or regex matching!
-    * TlsRecordPacket.cs: Fixed two bugs in JA3S signature, one when Server Hello has a
+	* TlsRecordPacket.cs: Fixed two bugs in JA3S signature, one when Server Hello has a
 	  Session ID length larger than zero and another when the server lists only one
 	  supported TLS version using the Supported Versions extension (#43).
 	* IEC_104_PacketHandler.cs: Added support for file transfers over IEC-104.

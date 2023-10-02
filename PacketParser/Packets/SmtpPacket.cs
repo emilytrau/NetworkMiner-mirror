@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace PacketParser.Packets {
@@ -80,7 +81,17 @@ namespace PacketParser.Packets {
         }
         
         internal static bool TryParse(Frame parentFrame, int packetStartIndex, int packetEndIndex, bool clientToServer, ushort sourcePort, out SmtpPacket smtpPacket) {
-            if(!clientToServer) {
+            if(clientToServer) {
+                if (packetEndIndex - packetStartIndex > 80) {
+                    int index = packetStartIndex;
+                    string line = Utils.ByteConverter.ReadLine(parentFrame.Data, ref index, true);
+                    if (line == null) {
+                        smtpPacket = null;
+                        return false;
+                    }
+                }
+            }
+            else {//server->client
                 int index = packetStartIndex;
                 string firstLine = Utils.ByteConverter.ReadLine(parentFrame.Data, ref index);
                 string line = firstLine;
@@ -102,9 +113,26 @@ namespace PacketParser.Packets {
                     return false;//avoid parsing FTP as SMTP
                 }
             }
+            //null terminated strings are not used in SMTP
+            if (parentFrame.Data[packetEndIndex] == 0 && packetEndIndex - packetStartIndex >= 3) {
+                //lets see if we have 7-bit ASCII of len 3 or more, terminated with null
+                for (int i = packetStartIndex; i <= packetEndIndex; i++) {
+                    if (parentFrame.Data[i] == 0) {
+                        if (i >= 3) {
+                            smtpPacket = null;
+                            return false;
+                        }
+                        else
+                            break;
+                    }
+                    else if (parentFrame.Data[i] < 0x20)
+                        break;
+                    else if (parentFrame.Data[i] > 0x7e)
+                        break;
+                }
+            }
             smtpPacket = new SmtpPacket(parentFrame, packetStartIndex, packetEndIndex, clientToServer);
             return true;
-
         }
 
 
@@ -120,7 +148,7 @@ namespace PacketParser.Packets {
 
                 while(index < packetEndIndex && this.requestCommandAndArgumentList.Count < 1000) {
 
-                    string line = Utils.ByteConverter.ReadLine(parentFrame.Data, ref index);
+                    string line = Utils.ByteConverter.ReadLine(parentFrame.Data, ref index, true);//RFC says use CR LF, but some clients only use LF
                     if (string.IsNullOrEmpty(line))
                         break;
 

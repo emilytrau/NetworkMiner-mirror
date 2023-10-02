@@ -35,7 +35,7 @@ namespace PacketParser.PacketHandlers {
          * AsduTypeID => InformationElement with ValueParser
          * */
 
-        public override Type ParsedType { get { return typeof(Packets.IEC_60870_5_104Packet); } }
+        public override Type[] ParsedTypes { get; } = { typeof(Packets.IEC_60870_5_104Packet) };
 
         public IEC_104_PacketHandler(PacketHandler mainPacketHandler)
             : base(mainPacketHandler) {
@@ -625,7 +625,7 @@ namespace PacketParser.PacketHandlers {
 
                             //TODO verify that the value is reasonable
                             if (bytesPerValue > 0) {
-                                string ioaValueString = Utils.ByteConverter.ReadHexString(iec104Packet.AsduData, bytesPerValue, ioaOffset);
+                                string ioaValueString = Utils.ByteConverter.ToHexString(iec104Packet.AsduData, bytesPerValue, ioaOffset);
                                 //uint ioaValue = Utils.ByteConverter.ToUInt32(iec104Packet.AsduData, ioaOffset, bytesPerValue);
                                 //byte ioaValue = iec104Packet.AsduData[ioaOffset];
                                 ioaOffset += bytesPerValue;
